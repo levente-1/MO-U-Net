@@ -22,10 +22,11 @@ from multiprocessing import cpu_count
 import torchio as tio
 import h5py as h5
 import matplotlib.pyplot as plt
-
+from options.BaseOptions import BaseOptions
 
 # Retrieve subject folders - NOTE MUST NOT HAVE h5 folder there already or will confuse folder list
-data_dir =  '/media/hdd/levibaljer/KhulaFinal'
+opt = BaseOptions().gather_options()
+data_dir = opt.data_dir
 list_subs = os.listdir(data_dir)
 for i in list_subs:
     if 'Sub' not in i:
