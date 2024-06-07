@@ -7,7 +7,7 @@ class TestOptions(BaseOptions):
         parser = BaseOptions.initialize(self, parser)
         parser.add_argument("--image", type=str, default='./Data_folder/test/images/0.nii')
         parser.add_argument("--output_dir", type=str, default='./Data_folder/test/images/result_0.nii', help='path to the .nii result to save')
-        parser.add_argument("--output_pref", type=str, default='./Data_folder/test/images/0.nii', help='prefix of the output file')
+        parser.add_argument("--output_pref", type=str, default='01', help='prefix of the output file')
 
         return parser
     
