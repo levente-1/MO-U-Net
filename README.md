@@ -34,7 +34,8 @@ Modify "BaseOptions.py" to set directory for preprocessed data and training conf
 
 ### Prediction
 
-Modify "TestOptions.py" file to specify input image, output directory, and prefix specifying subject number. Run "test.py" to obtain prediction (saved as 'sub<x>pred_final.nii')
+Modify "TestOptions.py" file to specify input image, output directory, and prefix specifying subject number. 
+Run "test.py" to obtain prediction (saved as 'sub<x>pred_final.nii')
 
 
 
