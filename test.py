@@ -10,7 +10,8 @@ opt = TestOptions().gather_options()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Load model
-test_model = torch.load(opt.checkpoint, map_location=device)
+checkpoint =  os.path.join(opt.checkpoint, '990.pth')
+test_model = torch.load(checkpoint, map_location=device)
 # Set model to evaluation (i.e. weights will not be updated given new input)
 test_model.eval()
 
