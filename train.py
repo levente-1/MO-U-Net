@@ -22,7 +22,8 @@ import numpy as np
 
 opt = BaseOptions().gather_options()
 
-data_dir = opt.preproc_dir
+train_dir = opt.preproc_train
+val_dir = opt.preproc_val
 OUTPUT_DIR = opt.output_dir
 batch_size = opt.batch_size
 n_splits = opt.n_splits
@@ -56,8 +57,8 @@ class BetaScheduler():
 
 
 
-def eval(model, cur_epoch, fold):
-    output_dir=os.path.join(OUTPUT_DIR,'{}'.format(fold))
+def eval(model, cur_epoch):
+    output_dir=os.path.join(OUTPUT_DIR)
     checkpoint_dir = os.path.join(output_dir, 'checkpoints')
     pred_dir = os.path.join(output_dir, 'preds')
     if not os.path.exists(checkpoint_dir):
@@ -113,55 +114,66 @@ def train():
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    dataloaders = get_quartet_dataloader(data_dir = data_dir, batch_size = batch_size, output_dir=output_dir, n_splits = n_splits)
-
-    for i in range(1, n_splits+1):
-        train_loader, test_loader = dataloaders[i]
-     
-        if checkpoint is not None:
-            model = torch.load((checkpoint))
-        else:
-            model =  UNet3D(in_channels=3, out_channels=1) # default args
+    train_loader, val_loader = get_quartet_dataloader(train_dir = train_dir, val_dir = val_dir, batch_size = batch_size, output_dir=output_dir)
     
-        optim = torch.optim.Adam(
-            model.parameters(),
-            lr=1e-3,
-            betas=(0.9, 0.999)
-        )
-        TBLogger = TensorBoardLogger(log_dir = op.join(output_dir,'{}'.format(i), 'tb_logs'),comment='fold_{}'.format(i))
-        sample_test_image,sample_test_target = test_loader.dataset.__getitem__(0)
-        if not os.path.exists(os.path.join(output_dir, '{}'.format(i))):
-            os.makedirs(os.path.join(output_dir, '{}'.format(i)))
-        np.save(os.path.join(output_dir,'{}'.format(i), 'test_image.npy'), sample_test_image)
-        np.save(os.path.join(output_dir,'{}'.format(i), 'test_target.npy'), sample_test_target)
+    if checkpoint is not None:
+        model = torch.load((checkpoint))
+    else:
+        model =  UNet3D(in_channels=3, out_channels=1) # default args
 
-        model.cuda()
-        n_step = 0
+    optim = torch.optim.Adam(
+        model.parameters(),
+        lr=1e-3,
+        betas=(0.9, 0.999)
+    )
+    TBLogger = TensorBoardLogger(log_dir = op.join(output_dir, 'tb_logs'))
+    sample_val_image,sample_val_target = val_loader.dataset.__getitem__(0)
+    if not os.path.exists(os.path.join(output_dir)):
+        os.makedirs(os.path.join(output_dir))
+    np.save(os.path.join(output_dir, 'test_image.npy'), sample_val_image)
+    np.save(os.path.join(output_dir, 'test_target.npy'), sample_val_target)
 
-        losses = []
-        for epoch in range(num_epochs):
-            losses.append(0)
-            model.train()
-            
-            for im,gt in tqdm(train_loader):
+    model.cuda()
+    n_step = 0
+    n_step_val = 0
+
+    losses = []
+    val_losses = []
+    for epoch in range(num_epochs):
+        losses.append(0)
+        model.train()
+        
+        for im,gt in tqdm(train_loader):
+            im=im.cuda()
+            gt=gt.cuda()
+            optim.zero_grad()
+            output = model(im)
+            loss = model.loss(gt, output)
+
+            try:
+                loss.backward()
+                optim.step()
+            except Exception as e:
+                pass
+
+            n_step+=1
+            losses[-1] += loss.item()
+        TBLogger(phase='train', step=epoch, loss=losses[-1])
+
+        model.eval()
+        val_losses.append(0)
+
+        with torch.no_grad():
+            for im,gt in tqdm(val_loader):
                 im=im.cuda()
                 gt=gt.cuda()
-                optim.zero_grad()
-                output = model(im)
-                loss = model.loss(output, gt)
+                output = model(im)  
+                loss = model.loss(gt, output)
+                n_step_val+=1
+                val_losses[-1] += loss.item()
+        TBLogger(phase='val', step=epoch,loss=val_losses[-1])
 
-                try:
-                    loss.backward()
-                    optim.step()
-                except Exception as e:
-                    pass
-
-                n_step+=1
-                losses[-1] += loss.item()
-            TBLogger(phase='train', step=epoch, loss=losses[-1])
-
-            model.eval()
-            eval(model,epoch,i)
+        eval(model,epoch)
 
             
 

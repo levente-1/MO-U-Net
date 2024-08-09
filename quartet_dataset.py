@@ -91,11 +91,11 @@ class Quartet_dataset(Dataset):
         self.gts = gts
         
     
-if __name__ == '__main__':
+# if __name__ == '__main__':
      
-     data_dir = opt.data_dir
-     Dataset = Quartet_dataset(data_dir)  
-     Y = torch.utils.data.DataLoader(Dataset, batch_size=4)       
+#      data_dir = opt.data_dir
+#      Dataset = Quartet_dataset(data_dir)  
+#      Y = torch.utils.data.DataLoader(Dataset, batch_size=4)       
     
         
     

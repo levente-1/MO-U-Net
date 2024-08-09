@@ -10,12 +10,6 @@ opt = TestOptions().gather_options()
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 device = torch.device("cpu")
 
-# Load model
-checkpoint =  os.path.join(opt.checkpoint, '990.pth')
-print(checkpoint)
-test_model = torch.load(checkpoint, map_location=device)
-# Set model to evaluation (i.e. weights will not be updated given new input)
-test_model.eval()
 
 # Function below loads images from a single subject
 def Image_loader(Image_dir):
@@ -27,7 +21,7 @@ def Image_loader(Image_dir):
     t2_file_list = [os.path.join(Image_dir,x) for x in subject_files]
     t2_file_list.sort()
     for i in t2_file_list[:]:
-        if 'AXI' not in i and 'SAG' not in i and 'COR' not in i:
+        if 'GT' not in i:
             t2_file_list.remove(i)
     
     print(t2_file_list)
@@ -72,11 +66,7 @@ def Image_loader(Image_dir):
 Image_tensors, file_list = Image_loader(opt.image_dir)
 
 # Concatenate tensors (instead of three separate inputs of shape (1, 160, 160, 160) we have one single input (3, 160, 160, 160))
-tensor_concat = torch.cat(Image_tensors, dim=1)
-print(tensor_concat.shape)
-
-# Run input through model (again, making sure this is on CPU)
-output = test_model(tensor_concat.to(device))
+tensor_GT = Image_tensors[0]
 
 # Select output directory to save images
 output_dir = opt.output_dir_pred
@@ -84,10 +74,10 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Saving prediction (the orientation of the images will be altered because of TorchIO)
-Prediction = output.cpu().detach().numpy().astype(np.float32)
-sitk.WriteImage(sitk.GetImageFromArray(Prediction[0, 0, :, :, :]),
-                        os.path.join(output_dir, '{}pred.nii.gz'.format(opt.output_pref)))
-Input = Image_tensors[0].cpu().detach().numpy().astype(np.float32)
+high_field = tensor_GT.cpu().detach().numpy().astype(np.float32)
+sitk.WriteImage(sitk.GetImageFromArray(high_field[0, 0, :, :, :]),
+                        os.path.join(output_dir, '{}gt.nii.gz'.format(opt.output_pref)))
+
 
 # Reload image (this will automatically reset orientation)
 def reload(imdir):
@@ -95,7 +85,7 @@ def reload(imdir):
     image_tensor = subject.t2.data.unsqueeze(0).float()
     return image_tensor
 
-tio_dir = os.path.join(output_dir, '{}pred.nii.gz'.format(opt.output_pref))
+tio_dir = os.path.join(output_dir, '{}gt.nii.gz'.format(opt.output_pref))
 tio_tensor = reload(tio_dir)
 
 # Resample image to original resolution (1mm isotropic)
@@ -106,14 +96,14 @@ tio_tensor = myTransform2(tio_tensor)
 # Save resampled image
 resampled = tio_tensor.cpu().detach().numpy().astype(np.float32)
 sitk.WriteImage(sitk.GetImageFromArray(resampled[0, :, :, :]),
-                            os.path.join(output_dir, '{}pred_resampled.nii.gz'.format(opt.output_pref)))
+                            os.path.join(output_dir, '{}gt_resampled.nii.gz'.format(opt.output_pref)))
 
 # Reload original axial image with nibabel
-OriginalAXI = nib.load(file_list[0])
-nib.aff2axcodes(OriginalAXI.affine)
+OriginalGT = nib.load(file_list[0])
+nib.aff2axcodes(OriginalGT.affine)
 
 # Set sform and qform of resampled image to be the same as the original axial image
-finalPrediction = nib.load((os.path.join(output_dir, '{}pred_resampled.nii.gz'.format(opt.output_pref))))
-finalPrediction.set_qform(OriginalAXI.affine)
-finalPrediction.set_sform(OriginalAXI.affine)
-nib.save(finalPrediction, os.path.join(output_dir, 'sub{}pred_final.nii'.format(opt.output_pref))) 
+finalPrediction = nib.load((os.path.join(output_dir, '{}gt_resampled.nii.gz'.format(opt.output_pref))))
+finalPrediction.set_qform(OriginalGT.affine)
+finalPrediction.set_sform(OriginalGT.affine)
+nib.save(finalPrediction, os.path.join(output_dir, 'sub{}gt_final.nii'.format(opt.output_pref))) 

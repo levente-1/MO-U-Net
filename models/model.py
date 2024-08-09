@@ -2,8 +2,10 @@ import torch.nn as nn
 import torch
 import torch.optim as optim
 from torchmetrics import PeakSignalNoiseRatio #StructuralSimilarityIndexMeasure, MultiScaleStructuralSimilarityIndexMeasure
+import lpips
+import numpy as np
 
-from buildingblocks import DoubleConv, ExtResNetBlock, create_encoders, \
+from models.buildingblocks import DoubleConv, ExtResNetBlock, create_encoders, \
     create_decoders
 #from .utils import number_of_features_per_level, get_class
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -125,24 +127,81 @@ class UNet3D(Abstract3DUNet):
                                      is_segmentation=is_segmentation,
                                      conv_padding=conv_padding,
                                      **kwargs)
-    def loss(self,im,im_hat):
-          
-         #mse = torch.nn.MSELoss()(im,im_hat)
-         psnr = PeakSignalNoiseRatio(data_range = 1.0).to(device)
-         loss_now = 1 - psnr(im_hat,im)
-          
-        # ssim = StructuralSimilarityIndexMeasure(data_range=1.0).to(device)
-        # loss_now = 1 - ssim(im,im_hat)
         
-       # betas: Tuple[float, ...] = (0.0448, 0.2856, 0.3001, 0.2363, 0.1333),
-       # try three downsampling features
-        #       k1: Parameter of SSIM.
-        #       k2: Parameter of SSIM.
-        #        k1: float = 0.01,
-        #        k2: float = 0.03,
-        # mssim  = MultiScaleStructuralSimilarityIndexMeasure(data_range=1.0, kernel_size=7,betas=(0.4,0.3,0.2)).to(device)
-        # loss_now = 1 - mssim(im_hat,im)
-         return loss_now
+        self.perc_loss = lpips.LPIPS(net='alex').to(device)
+
+        for ll in range(5):
+            tensor = self.perc_loss.lins[ll].model[1].weight.flatten()
+            for i in tensor:
+                if i < 0:
+                    print("NEGATIVE WEIGHTS IN NETWORK") 
+        print("NO NEGATIVE WEIGHTS IN NETWORK")
+
+    def loss(self,im,im_hat):
+
+        def randomSlices(img_gt, img_pred):
+            dim1_gt = []
+            dim2_gt = []
+            dim3_gt = []
+
+            dim1_pred = []
+            dim2_pred = []
+            dim3_pred = []
+
+            for i in range(2):
+                dim1Slice = np.random.randint(50, 120)
+                dim2Slice = np.random.randint(40, 110)
+                dim3Slice = np.random.randint(40, 100)
+
+                dim1_gt.append(img_gt[:, :, dim1Slice, :, :])
+                dim2_gt.append(img_gt[:, :, :, dim2Slice, :])
+                dim3_gt.append(img_gt[:, :, :, :, dim3Slice])
+
+                dim1_pred.append(img_pred[:, :, dim1Slice, :, :])
+                dim2_pred.append(img_pred[:, :, :, dim2Slice, :])
+                dim3_pred.append(img_pred[:, :, :, :, dim3Slice])
+
+            finalList_gt = dim1_gt + dim2_gt + dim3_gt
+            finalList_pred = dim1_pred + dim2_pred + dim3_pred
+        
+            torchList_gt = []
+            torchList_pred = []
+
+            for i in range(len(finalList_gt)):
+                new_torch_gt = (finalList_gt[i] * 2) - 1
+                new_torch_pred = (finalList_pred[i] * 2) - 1
+                
+                new_torch_gt = new_torch_gt.expand(1, 3, 160, 160)
+                new_torch_pred = new_torch_pred.expand(1, 3, 160, 160)
+            
+                torchList_gt.append(new_torch_gt)
+                torchList_pred.append(new_torch_pred)
+        
+            finalTorchGT = torch.concat(torchList_gt, dim=0)
+            finalTorchpred = torch.concat(torchList_pred, dim=0)
+            
+            return finalTorchGT, finalTorchpred
+          
+        mse = torch.nn.MSELoss().to(device)
+        loss_mse = mse(im,im_hat)
+        # psnr = PeakSignalNoiseRatio(data_range = 1.0).to(device)
+        # loss_now = 1 - psnr(im_hat,im)
+        # l1 = torch.nn.L1Loss()
+
+        im = im.detach()
+        im_hat = im_hat.detach()
+        slicesGT, slicesPred = randomSlices(im, im_hat)
+        with torch.no_grad():
+            slicesGT = slicesGT.to(device)
+            slicesPred = slicesPred.to(device)
+
+        perc = self.perc_loss(slicesGT, slicesPred)
+        perc_mean = torch.mean(perc)
+
+        loss_now = 100*loss_mse + perc_mean
+        print("LPIPS loss: " + str(perc_mean), "MSE loss: " + str(loss_mse), "Total loss: " + str(loss_now))
+
+        return loss_now
             
 
  
