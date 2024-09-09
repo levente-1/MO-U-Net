@@ -1,6 +1,6 @@
 # Official implementation of Multi-orientation U-Net
 
-Pytorch pipeline for 3D image domain translation using Multi-orientation-3D-U-Net. Code-base adapted from:
+Pytorch pipeline for 3D image domain translation using Multi-orientation U-Net. Code-base adapted from:
 
 - https://github.com/ExtremeViscent/SR-UNet
 
