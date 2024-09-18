@@ -1,6 +1,6 @@
 # Multi-orientation U-Net
 
-Official implementation of Multi-orientation U-Net. 
+Official PyTorch implementation of Multi-orientation U-Net (MO U-Net). 
 
 <img src="MainFig.png" width="800px"/>
 
