@@ -1,8 +1,6 @@
-# Official implementation of Multi-orientation U-Net
+Multi-orientation U-Net
 
-Pytorch pipeline for 3D image domain translation using Multi-orientation U-Net. Code-base adapted from:
-
-- https://github.com/ExtremeViscent/SR-UNet
+Official implementation of Multi-orientation U-Net. 
 
 ### Prerequisites
 
@@ -37,6 +35,13 @@ Modify "BaseOptions.py" to set directory for preprocessed data and training conf
 Modify "TestOptions.py" file to specify input image, output directory, and prefix specifying subject number. 
 Run "test.py" to obtain prediction (saved as 'sub<x>pred_final.nii')
 
+### Acknowledgement
 
+Code-base adapted from:
 
+- https://github.com/ExtremeViscent/SR-UNet
+
+PyTorch implementation of LPIPS borrowed from:
+
+- https://github.com/richzhang/PerceptualSimilarity
 
