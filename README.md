@@ -37,6 +37,11 @@ Modify "BaseOptions.py" to set directory for preprocessed data and training conf
 Modify "TestOptions.py" file to specify input image, output directory, and prefix specifying subject number. 
 Run "test.py" to obtain prediction (saved as 'sub<x>pred_final.nii')
 
+### Pre-trained model
+
+Download our trained MO U-Net from the following link: 
+https://emckclac-my.sharepoint.com/:u:/g/personal/k2035837_kcl_ac_uk/EQMo-cm14kJNmqGTCp0GKmwB1LfXJfbA0c5VOJednXFFlQ?e=mStzZZ
+
 ### Acknowledgement
 
 Code-base adapted from:
