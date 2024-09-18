@@ -27,7 +27,7 @@ from options.BaseOptions import BaseOptions
 # Retrieve subject folders - MUST NOT HAVE h5 folder there already or will confuse folder list
 opt = BaseOptions().gather_options()
 # data_dir = opt.data_dir
-data_dir = '/media/hdd/levibaljer/KhulaFinal/Fold4/val'
+data_dir = '/media/hdd/levibaljer/KhulaFinal/v2_Fold4/train'
 list_subs = os.listdir(data_dir)
 for i in list_subs:
     if 'Sub' not in i:

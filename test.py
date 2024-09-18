@@ -7,11 +7,12 @@ import nibabel as nib
 
 from options.TestOptions import TestOptions
 opt = TestOptions().gather_options()
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
-
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
+checkpoint_dir = '/media/hdd/levibaljer/UNet_old/v2_Fold4/checkpoints'
 # Load model
-checkpoint =  os.path.join(opt.checkpoint, '990.pth')
+# checkpoint =  os.path.join(opt.checkpoint, '1990.pth')
+checkpoint = os.path.join(checkpoint_dir, '1490.pth')
 print(checkpoint)
 test_model = torch.load(checkpoint, map_location=device)
 # Set model to evaluation (i.e. weights will not be updated given new input)
@@ -73,6 +74,8 @@ Image_tensors, file_list = Image_loader(opt.image_dir)
 
 # Concatenate tensors (instead of three separate inputs of shape (1, 160, 160, 160) we have one single input (3, 160, 160, 160))
 tensor_concat = torch.cat(Image_tensors, dim=1)
+# tensor_concat = torch.cat([Image_tensors[0], Image_tensors[0], Image_tensors[0]], dim=1)
+# tensor_concat = torch.cat([Image_tensors[0], Image_tensors[0], Image_tensors[2]], dim=1)
 print(tensor_concat.shape)
 
 # Run input through model (again, making sure this is on CPU)

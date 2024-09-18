@@ -199,7 +199,7 @@ class UNet3D(Abstract3DUNet):
         perc_mean = torch.mean(perc)
 
         loss_now = 100*loss_mse + perc_mean
-        print("LPIPS loss: " + str(perc_mean), "MSE loss: " + str(loss_mse), "Total loss: " + str(loss_now))
+        # print("LPIPS loss: " + str(perc_mean), "MSE loss: " + str(loss_mse), "Total loss: " + str(loss_now))
 
         return loss_now
             

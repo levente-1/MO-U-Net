@@ -158,7 +158,7 @@ def train():
 
             n_step+=1
             losses[-1] += loss.item()
-        TBLogger(phase='train', step=epoch, loss=losses[-1])
+        TBLogger(phase='train', step=epoch, loss=(losses[-1]/42))
 
         model.eval()
         val_losses.append(0)
@@ -171,7 +171,7 @@ def train():
                 loss = model.loss(gt, output)
                 n_step_val+=1
                 val_losses[-1] += loss.item()
-        TBLogger(phase='val', step=epoch,loss=val_losses[-1])
+        TBLogger(phase='val', step=epoch,loss=(val_losses[-1]/7))
 
         eval(model,epoch)
 

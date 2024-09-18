@@ -5,9 +5,9 @@ import argparse
 class TestOptions(BaseOptions):
     def initialize(self, parser):
         parser = BaseOptions.initialize(self, parser)
-        parser.add_argument("--image_dir", type=str, default='/media/hdd/levibaljer/KhulaFinal/Fold1/test/Sub59')
-        parser.add_argument("--output_dir_pred", type=str, default='/media/hdd/levibaljer/KhulaFinal/Fold1/test/Sub59/results_LPIPS', help='path to the .nii result to save')
-        parser.add_argument("--output_pref", type=str, default='59', help='prefix of the output file')
+        parser.add_argument("--image_dir", type=str, default='/media/hdd/levibaljer/KhulaFinal/v2_Fold4/test/Sub63')
+        parser.add_argument("--output_dir_pred", type=str, default='/media/hdd/levibaljer/KhulaFinal/v2_Fold4/test/Results_AS', help='path to the .nii result to save')
+        parser.add_argument("--output_pref", type=str, default='63', help='prefix of the output file')
 
         return parser
     
