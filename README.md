@@ -2,7 +2,7 @@
 
 Official implementation of Multi-orientation U-Net. 
 
-<img src="MainFig.png" width="600px"/>
+<img src="MainFig.png" width="800px"/>
 
 ### Prerequisites
 
