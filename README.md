@@ -2,6 +2,8 @@
 
 Official implementation of Multi-orientation U-Net. 
 
+<img src="MainFig.png" width="600px"/>
+
 ### Prerequisites
 
 See `requirements.txt`
