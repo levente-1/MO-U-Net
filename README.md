@@ -30,7 +30,7 @@ Before training the model, set data_dir in "Base_options.py" and run "run prepro
 
 ### Training
 
-Modify "BaseOptions.py" to set directory for preprocessed data and training configurations. Training and test sets are split on the fly, with their respective IDs saved as train_ids.npy & test_ids.npy in the pre-specified "id_path" directory.
+Modify "BaseOptions.py" to set directory for preprocessed data and training configurations.
 
 ### Prediction
 
